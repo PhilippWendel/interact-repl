@@ -2,20 +2,20 @@ const std = @import("std");
 const interact_repl = @import("interact_repl");
 
 const Command = enum {
-    // zig fmt: off
-    empty, unknown, // This needs to be first because of comptime function fromString
-    exit, quit,
-    help, usage,
-    result, add,
-    // zig fmt: on
+    empty,
+    unknown,
+    exit,
+    quit,
+    help,
+    usage,
+    result,
+    add,
 
     pub fn fromString(str: []const u8) Command {
         if (str.len == 0) return .empty;
-        // Starts at index 2
-        inline for (@typeInfo(Command).@"enum".fields[2..]) |field| {
-            if (std.mem.eql(u8, str, field.name)) {
-                return @enumFromInt(field.value);
-            }
+        if (eql(str, "unknown") or eql(str, "empty")) return .unknown;
+        inline for (@typeInfo(Command).@"enum".fields) |field| {
+            if (std.mem.eql(u8, str, field.name)) return @enumFromInt(field.value);
         }
         return .unknown;
     }

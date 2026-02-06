@@ -10,6 +10,7 @@ pub fn ReplContext(comptime StateType: type) type {
         }
     };
 }
+
 pub fn repl(ctx: anytype, allocator: std.mem.Allocator) !void {
     var stdin_buf: [1024]u8 = undefined;
     var stdin_reader = std.fs.File.stdin().reader(&stdin_buf);
