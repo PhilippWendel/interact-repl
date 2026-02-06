@@ -25,22 +25,15 @@ pub fn repl(ctx: anytype, allocator: std.mem.Allocator) !void {
         try stdout.flush();
 
         // Read line
-        const bare_line = stdin.takeDelimiter('\n') catch |err| switch (err) {
-            else => return err,
-        } orelse "";
-
+        const bare_line = (stdin.takeDelimiter('\n') catch |e| return e) orelse "";
         const line = std.mem.trim(u8, bare_line, "\r\n \t");
 
         // Process line
-        const output = try ctx.process(line);
-
-        // null means exit
-        if (output == null) return;
+        const output = try ctx.process(line) orelse return; // null means exit
+        defer allocator.free(output);
 
         // Write output
-        defer allocator.free(output.?);
-        try stdout.writeAll(output.?);
-        try stdout.writeAll("\n");
+        try stdout.print("{s}\n", .{output});
         try stdout.flush();
     }
 }
