@@ -46,7 +46,8 @@ fn calculate(state: *CalcState, line: []const u8) !?[]u8 {
         , .{state.last_result}),
         .add => {
             const num_str = tokens.next() orelse break :blk try std.fmt.allocPrint(state.allocator, "add requires a number argument", .{});
-            const num = try std.fmt.parseInt(i64, num_str, 10);
+            const num = std.fmt.parseInt(i64, num_str, 10) catch |err|
+                break :blk try std.fmt.allocPrint(state.allocator, "failed to parse \"{s}\"; reason: {}", .{ num_str, err });
             state.last_result += num;
             continue :blk .result;
         },
