@@ -45,7 +45,7 @@ fn calculate(state: *CalcState, line: []const u8) !?[]u8 {
             \\    result - Prints the last result
         , .{state.last_result}),
         .add => {
-            const num_str = tokens.next() orelse return try std.fmt.allocPrint(state.allocator, "add requires a number argument", .{});
+            const num_str = tokens.next() orelse break :blk try std.fmt.allocPrint(state.allocator, "add requires a number argument", .{});
             const num = try std.fmt.parseInt(i64, num_str, 10);
             state.last_result += num;
             continue :blk .result;
