@@ -31,9 +31,6 @@ pub fn repl(ctx: anytype, allocator: std.mem.Allocator) !void {
 
         const line = std.mem.trim(u8, bare_line, "\r\n \t");
 
-        // Skip empty lines
-        // if (line.len == 0) continue;
-
         // Process line
         const output = try ctx.process(line);
 
