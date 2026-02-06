@@ -40,6 +40,7 @@ pub fn repl(ctx: anytype, allocator: std.mem.Allocator) !void {
         // Write output
         defer allocator.free(output.?);
         try stdout.writeAll(output.?);
+        try stdout.writeAll("\n");
         try stdout.flush();
     }
 }
