@@ -1,23 +1,48 @@
-//! By convention, root.zig is the root source file when making a library.
 const std = @import("std");
 
-pub fn bufferedPrint() !void {
-    // Stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
+pub fn ReplContext(comptime StateType: type) type {
+    return struct {
+        state: StateType,
+        processFn: *const fn (state: *StateType, line: []const u8) anyerror!?[]u8,
+
+        pub fn process(self: *@This(), line: []const u8) !?[]u8 {
+            return self.processFn(&self.state, line);
+        }
+    };
+}
+pub fn repl(ctx: anytype, allocator: std.mem.Allocator) !void {
+    var stdin_buf: [1024]u8 = undefined;
+    var stdin_reader = std.fs.File.stdin().reader(&stdin_buf);
+    const stdin = &stdin_reader.interface;
+
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
     const stdout = &stdout_writer.interface;
 
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    while (true) {
+        // Show prompt
+        try stdout.writeAll("> ");
+        try stdout.flush();
 
-    try stdout.flush(); // Don't forget to flush!
-}
+        // Read line
+        const bare_line = stdin.takeDelimiter('\n') catch |err| switch (err) {
+            else => return err,
+        } orelse "";
 
-pub fn add(a: i32, b: i32) i32 {
-    return a + b;
-}
+        const line = std.mem.trim(u8, bare_line, "\r\n \t");
 
-test "basic add functionality" {
-    try std.testing.expect(add(3, 7) == 10);
+        // Skip empty lines
+        // if (line.len == 0) continue;
+
+        // Process line
+        const output = try ctx.process(line);
+
+        // null means exit
+        if (output == null) return;
+
+        // Write output
+        defer allocator.free(output.?);
+        try stdout.writeAll(output.?);
+        try stdout.flush();
+    }
 }
